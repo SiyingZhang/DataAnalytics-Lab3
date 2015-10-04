@@ -29,24 +29,17 @@ with con:
 	#Create a table named "budget", movieName as the primary key, and budget is another column.
 	cur.execute("CREATE TABLE budget(movieName TEXT PRIMARY KEY, budget REAL, domestic REAL, worldwide REAL)")
 
-	# for table in tables:
-	# 	print(table)
 	for row in soup('table')[0].findAll('tr'):
 		# dateDic=dic()
 		budgetDic = dict()
 		domesticDic=dict()
 		worldwideDic=dict()
 		key = ''
-		# tds=row('td')
 		for td in row.findAll('td')[2:3]:
 			key+=td.text
 	
 		for td in row.findAll('td')[1:2]:
-			key+=' ('+(str)(td.text)[-4:]+')'
-
-			 # = key+' ('+(str)(td.text)[-4:]+')'
-			# budget_dic['date']=(str)(td.text)[-4:]
-	
+			key+=' ('+(str)(td.text)[-4:]+')'	
 	
 		for td in row.findAll('td')[3:4]:
 			budgetValue = []
