@@ -14,6 +14,7 @@ import re
 ratingsList = "http://boxnumbertwo.com/MovieData/ratings.list"
 response = urllib.urlopen(ratingsList)
 movies = dict()
+count = 0
 
 for line in response:
 	words = re.sub(' +',' ',line.strip())	
@@ -21,10 +22,14 @@ for line in response:
 
 	#remove special characters at the beginning of the string
 	wordReplace1 = re.sub('["\$#@&''*!.]','',line[3])
-	#remove "{.*}" behind of the string
+	#remove "{.*}" behind of the string (423431 results / 3376 match)
 	wordReplace2 = re.sub('{.*}', '', wordReplace1)
+	# remove '(TV)' '(V)' () (422585 results)
+	wordReplace3 = re.sub(r' \(\D*\)', '', wordReplace2)
+	# change (2007/I) into (2007) (422303 results / 3572 match)
+	wordReplace4 = re.sub(r'\/.\)',')', wordReplace3)
 	#store the modified value into dict.
-	movies[wordReplace2]=line[2]
+	movies[wordReplace4]=line[2]
 
 ## Set directory to YOUR computer and folder
 directoryForDB = "./MovieData/"
@@ -46,6 +51,8 @@ with con:
 	for key in movies:
 		insertStatement = 'INSERT INTO ratings VALUES(?,?)'
 		parms = (key,movies[key])
-	
+		count+=1
 		cur.execute(insertStatement, parms)
+		print "Inserting: ", key
 	con.commit()
+	print 'Total records: ',count
