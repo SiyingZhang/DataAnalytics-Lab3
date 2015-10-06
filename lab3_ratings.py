@@ -23,7 +23,7 @@ for line in response:
 	#remove special characters at the beginning of the string
 	wordReplace1 = re.sub('["\$#@&''*!.]','',line[3])
 	#remove "{.*}" behind of the string (423431 results / 3376 match)
-	wordReplace2 = re.sub('{.*}', '', wordReplace1)
+	wordReplace2 = re.sub(' {.*}', '', wordReplace1)
 	# remove '(TV)' '(V)' () (422585 results)
 	wordReplace3 = re.sub(r' \(\D*\)', '', wordReplace2)
 	# change (2007/I) into (2007) (422303 results / 3572 match)
