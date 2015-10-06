@@ -28,10 +28,11 @@ with con:
 	cur = con.cursor()
 	cur.execute("DROP TABLE IF EXISTS budget") 
 	#Create a table named "budget", movieName as the primary key, and budget is another column.
-	cur.execute("CREATE TABLE budget(movieName TEXT PRIMARY KEY, budget REAL, domestic REAL, worldwide REAL)")
+	cur.execute("CREATE TABLE budget(movieName TEXT PRIMARY KEY,month INT, budget REAL, domestic REAL, worldwide REAL)")
 
 	for row in soup('table')[0].findAll('tr'):
 		budgetDic = dict()
+		monthDic =dict()
 		domesticDic=dict()
 		worldwideDic=dict()
 		key = ''
@@ -40,7 +41,11 @@ with con:
 				key+=td.text
 	
 			for td in row.findAll('td')[1:2]:
-				key+=' ('+(str)(td.text)[-4:]+')'	
+				key+=' ('+(str)(td.text)[-4:]+')'
+				if(td.text[1]=='/'):
+					monthDic[key] = td.text[0]
+				else:	
+					monthDic[key] = td.text[0:2]
 	
 			for td in row.findAll('td')[3:4]:
 				budgetValue = []
@@ -60,8 +65,8 @@ with con:
 				worldwideValue = worldwideValue.replace('$','')
 				worldwideDic[key] = (str)(worldwideValue)
 			
-			insertStatement = 'INSERT INTO budget VALUES(?,?,?,?)'
-			parms = (key,budgetDic[key],domesticDic[key],worldwideDic[key])
+			insertStatement = 'INSERT INTO budget VALUES(?,?,?,?,?)'
+			parms = (key,monthDic[key],budgetDic[key],domesticDic[key],worldwideDic[key])
 			cur.execute(insertStatement, parms)
 			print "Inserting: ", key
 			count+=1
