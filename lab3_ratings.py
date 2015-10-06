@@ -29,7 +29,9 @@ for line in response:
 	# change (2007/I) into (2007) (422303 results / 3572 match)
 	wordReplace4 = re.sub(r'\/.\)',')', wordReplace3)
 	#store the modified value into dict.
-	movies[wordReplace4]={'rating': line[2], 'votes': line[1]}
+	if wordReplace4 not in movies:
+		movies[wordReplace4] = {'rating': line[2], 'votes': line[1]}
+
 
 ## Set directory to YOUR computer and folder
 directoryForDB = "./MovieData/"
