@@ -20,17 +20,21 @@ for line in response:
 	words = re.sub(' +',' ',line.strip())	
 	line = words.split(" ",3)
 
-	#remove special characters at the beginning of the string
-	wordReplace1 = re.sub('["\$#@&''*!.]','',line[3])
+	# remove special characters "2 or more characters, not A-Z a-z 0-9 { } \" 'space' " 
+	wordReplace1 = re.sub('[^A-Z^a-z^0-9^{^}^\"^ ]{2,}','',line[3])
 	#remove "{.*}" behind of the string (423431 results / 3376 match)
 	wordReplace2 = re.sub(' {.*}', '', wordReplace1)
 	# remove '(TV)' '(V)' () (422585 results)
 	wordReplace3 = re.sub(r' \(\D*\)', '', wordReplace2)
 	# change (2007/I) into (2007) (422303 results / 3572 match)
-	wordReplace4 = re.sub(r'\/.\)',')', wordReplace3)
-	#store the modified value into dict.
-	if wordReplace4 not in movies:
-		movies[wordReplace4] = {'rating': line[2], 'votes': line[1]}
+	wordReplace4 = re.sub(r'\/.*\)',')', wordReplace3)
+	# remove the \" at the begining
+	wordReplace5 = re.sub(r'^\"','', wordReplace4)
+	# handle the last \" and the begining 'space'
+	wordReplace6 = wordReplace5.replace("\" "," ").lstrip()	
+	# store the value into dict, if there are movies with the same name then chose the first one (Max votes).
+	if wordReplace6 not in movies:
+		movies[wordReplace6] = {'rating': line[2], 'votes': line[1], 'year': wordReplace6[-5:-1]}
 
 
 ## Set directory to YOUR computer and folder
@@ -49,10 +53,10 @@ with con:
 	cur = con.cursor()
 	cur.execute("DROP TABLE IF EXISTS ratings") 
 	#Create a table named "ratings", movieName as the primary key, and ratings is another column.
-	cur.execute("CREATE TABLE ratings(movieName TEXT, rating REAL, votes INT)")
+	cur.execute("CREATE TABLE ratings(movieName TEXT,year INT, rating REAL, votes INT)")
 	for key in movies:
-		insertStatement = 'INSERT INTO ratings VALUES(?, ?, ?)'
-		parms = (key, movies[key]['rating'], movies[key]['votes'])
+		insertStatement = 'INSERT INTO ratings VALUES(?, ?, ?, ?)'
+		parms = (key, movies[key]['year'], movies[key]['rating'], movies[key]['votes'])
 		count+=1
 		cur.execute(insertStatement, parms)
 		print "Inserting: ", key
