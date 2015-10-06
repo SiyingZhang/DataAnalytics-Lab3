@@ -12,6 +12,7 @@ html = urllib.urlopen(siteHTML).read()
 soup = BeautifulSoup(html)
 tables = soup.findAll("table")
 
+# f = open("./budget.txt","w")
 directoryForDB = "./MovieData/"
 if not os.path.exists(directoryForDB):
 	os.makedirs(directoryForDB)
@@ -28,10 +29,11 @@ with con:
 	cur = con.cursor()
 	cur.execute("DROP TABLE IF EXISTS budget") 
 	#Create a table named "budget", movieName as the primary key, and budget is another column.
-	cur.execute("CREATE TABLE budget(movieName TEXT PRIMARY KEY,month INT, budget REAL, domestic REAL, worldwide REAL)")
+	cur.execute("CREATE TABLE budget(movieName TEXT PRIMARY KEY,year INT, month INT, budget REAL, domestic REAL, worldwide REAL)")
 
 	for row in soup('table')[0].findAll('tr'):
 		budgetDic = dict()
+		yearDic = dict()
 		monthDic =dict()
 		domesticDic=dict()
 		worldwideDic=dict()
@@ -42,6 +44,7 @@ with con:
 	
 			for td in row.findAll('td')[1:2]:
 				key+=' ('+(str)(td.text)[-4:]+')'
+				yearDic[key] = (str)(td.text)[-4:]
 				if(td.text[1]=='/'):
 					monthDic[key] = td.text[0]
 				else:	
@@ -65,10 +68,13 @@ with con:
 				worldwideValue = worldwideValue.replace('$','')
 				worldwideDic[key] = (str)(worldwideValue)
 			
-			insertStatement = 'INSERT INTO budget VALUES(?,?,?,?,?)'
-			parms = (key,monthDic[key],budgetDic[key],domesticDic[key],worldwideDic[key])
+			insertStatement = 'INSERT INTO budget VALUES(?,?,?,?,?,?)'
+			parms = (key,yearDic[key],monthDic[key],budgetDic[key],domesticDic[key],worldwideDic[key])
 			cur.execute(insertStatement, parms)
 			print "Inserting: ", key
+			# print >>f, "Inserting: ", key
 			count+=1
 		con.commit()
 	print 'Total records: ',count
+# 	print >> f, 'Total records: ',count
+# f.close()
