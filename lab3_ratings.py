@@ -21,13 +21,13 @@ for line in response:
 	line = words.split(" ",3)
 
 	# remove special characters "2 or more characters, not A-Z a-z 0-9 { } \" 'space' " 
-	wordReplace1 = re.sub('[^A-Z^a-z^0-9^{^}^\"^ ]{2,}','',line[3])
+	wordReplace1 = re.sub('[^A-Z^a-z^0-9^{^}^\(^\)^\"^ ]{2,}','',line[3])
 	#remove "{.*}" behind of the string (423431 results / 3376 match)
 	wordReplace2 = re.sub(' {.*}', '', wordReplace1)
 	# remove '(TV)' '(V)' () (422585 results)
 	wordReplace3 = re.sub(r' \(\D*\)', '', wordReplace2)
 	# change (2007/I) into (2007) (422303 results / 3572 match)
-	wordReplace4 = re.sub(r'\/.*\)',')', wordReplace3)
+	wordReplace4 = re.sub(r'\/.{1,3}\)',')', wordReplace3)
 	# remove the \" at the begining
 	wordReplace5 = re.sub(r'^\"','', wordReplace4)
 	# handle the last \" and the begining 'space'
