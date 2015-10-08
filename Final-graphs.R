@@ -1,5 +1,5 @@
 library("RSQLite")
-library("ggplot2")
+library(ggplot2)
 
 ## Set directory to YOUR computer and folder
 setwd("~/Documents/Courses/workspace/DALab3/DataAnalytics-Lab3/MovieData")
@@ -12,7 +12,6 @@ moviesDB <- dbConnect(sqlite,"movies.db")
 ## Show tables list
 dbListTables(moviesDB) 
 
-############################ KEN'S PART #########################################
 ## Select data group by year.
 query <- dbSendQuery(moviesDB, "SELECT year, AVG(budget) AS avg_budget, AVG(domestic) AS avg_domestic, AVG(worldwide) AS avg_worldwide,COUNT() AS count FROM budget GROUP BY year HAVING count >5 AND year < 2016")
 numberYear <- dbFetch(query, n=-1)
@@ -20,17 +19,18 @@ numberYear <- dbFetch(query, n=-1)
 ## Using simple linear regression to generate the exponetional fit curve.
 yearCount.lm <- lm(log(count)~1 + year,data=numberYear)
 
-## Show the linear regression result p-value =2.2e-16 < 0.05
+## Show the linear regression result p-value = 2.2e-16 < 0.05
 summary(yearCount.lm)
 
 ## Tried to use nls simple nonlinear least squares fit but failed.
 #yearCount.exp <- nls(count~a*exp(b*year+c), start=list(a=1.2,b=yearCount.lm$coefficients[2],c=yearCount$coefficients[1]), data=numberYear)
 
 ## Generate data for the fit curve.
-yearCount.result<-data.frame(x=year,y=exp(yearCount.lm$coefficients[2]*year+yearCount.lm$coefficients[1])) 
+years=numberYear$year
+yearCount.result<-data.frame(x=years,y=exp(yearCount.lm$coefficients[2]*years+yearCount.lm$coefficients[1])) 
 
 ########### Create a graph for this dataframe YEAR vs Number of movies.
-## They seem to have a exponetional relation, number of movies increases exponetionally along with year.
+## They seem to have a exponetial relation, number of movies increases exponetionally along with year.
 ggplot() +
   geom_point(data = numberYear, aes(year,count)) +
   geom_line(data = yearCount.result, aes(x, y)) 
@@ -56,10 +56,8 @@ ggplot(data = bugetTable, aes(factor(decade), y=worldwide)) +
   geom_boxplot() +
   scale_y_log10()
 
-##################################### NICOLE'S PART ####################################
-
 #select rating and worldwide gross from two tables
-query <- dbSendQuery(db, "SELECT r.rating,  b.worldwide FROM budget b, ratings r WHERE r.movieName=b.movieName" )
+query <- dbSendQuery(moviesDB, "SELECT r.rating,  b.worldwide FROM budget b, ratings r WHERE r.movieName=b.movieName" )
 #return all rows that selected 
 RatingVsWorldwide<- dbFetch(query, n = -1)
 
@@ -70,17 +68,14 @@ plot(rating, worldwide, main="RatingVsWorldwide", xlab="rating ", ylab="worldwid
 #paint a graph that showing the counting of votes
 ggplot(RatingVsWorldwide, aes(x=rating))+ geom_histogram(aes(fill = ..count..), binwidth=0.48)
 
-############################### CYNITHIA'S PART ###########################################
-
 ## Select vote and ratings column from rating table.
 query <- dbSendQuery(moviesDB, "SELECT AVG(rating) AS AvgRating, year FROM ratings WHERE year<2018 GROUP BY year")
 RatingByYears <- dbFetch(query, n=-1)
 
-library(ggplot2)
 ## Create a graph for this database
 attach(RatingByYears)
 ## Using qplot to generate a "bar" graph
-qplot(year, AvgRating, data = RatingsByYears, geom = "bar", color = "red", main="Ratings By Years", xlab = "Votes", ylab = "Ratings", stat = "identity")
+qplot(year, AvgRating, data = RatingByYears, geom = "bar", color = "red", main="Ratings By Years", xlab = "Votes", ylab = "Ratings", stat = "identity")
 
 ## Select vote and ratings column from rating table.
 query <- dbSendQuery(moviesDB, "SELECT votes, rating FROM ratings ORDER BY rating ASC")
@@ -91,24 +86,20 @@ attach(RatingVsVotes)
 ## generate a plot graph to see the tendency of rating over the change of votes
 plot(votes, rating, main="Rating VS Votes", xlab = "Votes", ylab = "Ratings", pch = 20)
 
-########################## AZIZ'S PART #############################################
 ## Select budget and ratings column from two tables.
-query <- dbSendQuery(db, "SELECT b.movieName, b.buget, r.rating,  FROM budget b, ratings r WHERE r.movieName=b.movieName" )
-##return rows that selected into a class called RatingsVsBudget
+query <- dbSendQuery(moviesDB, "SELECT b.movieName, b.budget, r.rating FROM budget b, ratings r WHERE r.movieName=b.movieName" )
+## return rows that selected into a class called RatingsVsBudget
 RatingsVsBudget <- dbFetch(query, n=-1)
 attach(RatingsVsBudget)
 ##Create a graph showing the relationship of rating and budget
-plot(ratings, budget, main="RatingsVsBudget", xlab="rating ", ylab="Budget", pch=19)
+plot(rating, budget, main="RatingsVsBudget", xlab="rating ", ylab="Budget", pch=19)
 
- 
-######################## Abhishek's Part ####################
 ##Select year and worldwide gross column from two tables.
 query <- dbSendQuery(moviesDB, "select year,worldwide from budget group by year")
 YearVsWorldwide <- dbFetch(query, n=-1)
 attach(YearVsWorldwide)
 ##Create a graph showing the relationship of year and worldwide
 plot(worldwide , year , main="YearVsWorldwide" , xlab = "Worldwide" , ylab = "Year" , pch=19)
-
 
 ## End the query.
 dbClearResult(query)
