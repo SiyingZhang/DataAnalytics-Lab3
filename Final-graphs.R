@@ -44,18 +44,32 @@ bugetTable$decade <- bugetTable$year%/%10   #Generate column decade in the dataf
 
 ## Generating season in the datafram as a factor to classify worldwide gross.
 for(i in 1:length(bugetTable$month)){
-  if((bugetTable$month[i]>=1) && (bugetTable$month[i]<4)) bugetTable$season[i] <- 1
-  if((bugetTable$month[i]>=4) && (bugetTable$month[i]<7)) bugetTable$season[i] <- 2
-  if((bugetTable$month[i]>=7) && (bugetTable$month[i]<10)) bugetTable$season[i] <- 3
-  if((bugetTable$month[i]>=10) && (bugetTable$month[i]<12)) bugetTable$season[i] <- 4
+  if(bugetTable$month[i]<4) bugetTable$season[i] <- 1
+  else if(bugetTable$month[i]<7) bugetTable$season[i] <- 2
+  else if(bugetTable$month[i]<10) bugetTable$season[i] <- 3
+  else bugetTable$season[i] <- 4
+}
+
+for(i in 1:length(bugetTable$month)){
+  if(bugetTable$worldwide[i]<1000000) bugetTable$scale[i] <- '< 1000000'
+  else if(bugetTable$worldwide[i]<125000000) bugetTable$scale[i] <- '< 125000000'
+  else if(bugetTable$worldwide[i]<150000000) bugetTable$scale[i] <- '< 150000000'
+  else if(bugetTable$worldwide[i]<175000000) bugetTable$scale[i] <- '< 175000000'
+  else if(bugetTable$worldwide[i]<1850000000) bugetTable$scale[i] <- '< 1950000000'
+  else bugetTable$scale[i] <- '>= 1950000000'
 }
 
 ## Generating boxpot showing the relation between worldwide gross and decade
 ## and pointplot in different color to indicate worldwide gross seasonally.
 ggplot(data = bugetTable, aes(factor(decade), y=worldwide)) + 
-  geom_jitter(aes(colour = factor(season)),alpha=1/2) +
-  geom_boxplot() +
+  geom_jitter(aes(colour = factor(season),alpha=scale)) +
+  geom_boxplot(alpha=0.01) +
   scale_y_log10()
+
+## Average worldwide gross along with month.
+queryBudget<-dbSendQuery(moviesDB,"SELECT AVG(worldwide) as avg_worldwide,month FROM budget GROUP BY month ORDER BY year ASC")
+yearWorldwide<-dbFetch(queryBudget, n=-1)
+ggplot(data=yearWorldwide,aes(month,avg_worldwide)) + geom_histogram(aes(fill = avg_worldwide),stat="identity")
 
 #select rating and worldwide gross from two tables
 query <- dbSendQuery(moviesDB, "SELECT r.rating,  b.worldwide FROM budget b, ratings r WHERE r.movieName=b.movieName" )
